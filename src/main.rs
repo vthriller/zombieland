@@ -17,11 +17,22 @@ extern fn handle_sigchld(_: i32) {
 
 fn main() {
 	unsafe {
+		for s in signal::Signal::iterator() {
+			// > don't panic, unless your situation is really a life or death one, in which case, sure, go ahead, panic
+			let _ = signal::sigaction(s, &signal::SigAction::new(
+				signal::SigHandler::SigIgn,
+				signal::SaFlags::empty(),
+				signal::SigSet::empty()
+			));
+		}
+
 		let _ = signal::sigaction(signal::SIGCHLD, &signal::SigAction::new(
 			signal::SigHandler::Handler(handle_sigchld),
 			signal::SaFlags::empty(),
 			signal::SigSet::empty()
 		));
+
+		// TODO: SIGSEGV?
 	}
 
 	loop {
