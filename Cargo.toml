@@ -2,3 +2,6 @@
 name = "zombieland"
 version = "0.0.1"
 authors = ["<unixway.drive@gmail.com>"]
+
+[dependencies]
+nix = "0.7.0"
