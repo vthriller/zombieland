@@ -6,3 +6,4 @@ authors = ["<unixway.drive@gmail.com>"]
 [dependencies]
 # setsid() is in git since 2016-10-27, yet no release has been made since then
 nix = { git = "https://github.com/nix-rust/nix" }
+syscall = "0.2.1"

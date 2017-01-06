@@ -3,6 +3,7 @@ name = "zombieland"
 version = "0.1.0"
 dependencies = [
  "nix 0.8.0 (git+https://github.com/nix-rust/nix)",
+ "syscall 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -32,6 +33,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "syscall"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "void"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -41,4 +47,5 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum cfg-if 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "de1e760d7b6535af4241fca8bd8adf68e2e7edacc6b29f5d399050c5e48cf88c"
 "checksum libc 0.2.19 (git+https://github.com/rust-lang/libc)" = "<none>"
 "checksum nix 0.8.0 (git+https://github.com/nix-rust/nix)" = "<none>"
+"checksum syscall 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "dae2c4de039bf338dd96f46621f20222c4101045dac5403b46f472608cb5b556"
 "checksum void 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "6a02e4885ed3bc0f2de90ea6dd45ebcbb66dacffe03547fadbb0eeae2770887d"

@@ -1,4 +1,8 @@
+// > error: non-ident macro paths are experimental (see issue #35896)
+#![feature(use_extern_macros)]
+
 extern crate nix;
+extern crate syscall;
 
 use std::process::Command;
 use nix::sys::{signal, wait};
@@ -77,6 +81,12 @@ fn main() {
 		));
 
 		// TODO: SIGSEGV?
+	}
+
+	#[cfg(target_os = "linux")]
+	unsafe {
+		// if Ctrl-Alt-Del is pressed, `kill -INT 1` instead of hard-rebooting the system
+		syscall::syscall!(REBOOT, 0xfee1dead, 0x20112000, 0);
 	}
 
 	let conf = read_config();
