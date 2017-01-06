@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+/sbin/openrc sysinit
+/sbin/openrc boot
+/sbin/openrc default
