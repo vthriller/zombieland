@@ -25,6 +25,18 @@ extern fn handle_sigchld(_: i32) {
 	}
 }
 
+extern fn handle_sigint(_: i32) {
+	// XXX re-reading configuration file isn't that effective, but hey, you don't smash that three-key chord constantly do you?
+	let conf = read_config();
+
+	match conf.get("ctrlaltdel") {
+		Some(s) => {
+			let _ = Command::new(s).status(); // we clearly couldn't care less about the outcome of this one
+		},
+		None => {}
+	};
+}
+
 fn read_config() -> HashMap<String, String> {
 	let mut conf = HashMap::new();
 
@@ -76,6 +88,12 @@ fn main() {
 
 		let _ = signal::sigaction(signal::SIGCHLD, &signal::SigAction::new(
 			signal::SigHandler::Handler(handle_sigchld),
+			signal::SaFlags::empty(),
+			signal::SigSet::empty()
+		));
+
+		let _ = signal::sigaction(signal::SIGINT, &signal::SigAction::new(
+			signal::SigHandler::Handler(handle_sigint),
 			signal::SaFlags::empty(),
 			signal::SigSet::empty()
 		));
