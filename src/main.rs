@@ -31,7 +31,11 @@ extern fn handle_sigint(_: i32) {
 
 	match conf.get("ctrlaltdel") {
 		Some(s) => {
-			let _ = Command::new(s).status(); // we clearly couldn't care less about the outcome of this one
+			// sure process::Child does not implement the Drop trait, but it does not really make that much of a difference:
+			// * this is ctrl-alt-del handler, so we're probably going to die soon anyways;
+			// * this is signal handler, so we'd rather return as soon as possible;
+			// * as for zombie children situation, we already have `handle_sigchld`.
+			let _ = Command::new(s).spawn(); // we clearly couldn't care less about the outcome of this one
 		},
 		None => {}
 	};
