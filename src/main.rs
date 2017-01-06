@@ -33,8 +33,15 @@ fn read_config() -> HashMap<String, String> {
 	// poor man's parser
 	for line in f.lines() {
 		let line = line.unwrap();
-		let mut tokens = line.trim()
-			.splitn(2, |c| c == ' ' || c == '\t');
+		let line = line.trim();
+
+		// ignore comments and empty lines
+		if line.starts_with('#') { continue; }
+		if line.is_empty() { continue; }
+
+		let mut tokens = line.splitn(2,
+			|c| c == ' ' || c == '\t'
+		);
 		let k = match tokens.next() {
 			Some(s) => s.to_string(),
 			None => continue
