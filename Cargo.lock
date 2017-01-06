@@ -1,6 +1,6 @@
 [root]
 name = "zombieland"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "nix 0.8.0 (git+https://github.com/nix-rust/nix)",
 ]

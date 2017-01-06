@@ -1,6 +1,6 @@
 [package]
 name = "zombieland"
-version = "0.0.1"
+version = "0.1.0"
 authors = ["<unixway.drive@gmail.com>"]
 
 [dependencies]
