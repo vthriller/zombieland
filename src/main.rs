@@ -4,6 +4,11 @@ use std::process::Command;
 use nix::sys::{signal, wait};
 use nix::unistd;
 
+use std::fs::File;
+use std::io::BufReader;
+use std::io::BufRead;
+use std::collections::HashMap;
+
 extern fn handle_sigchld(_: i32) {
 	// zombie orphanage… more like a zombie death camp
 	loop {
@@ -14,6 +19,34 @@ extern fn handle_sigchld(_: i32) {
 			_ => ()
 		}
 	}
+}
+
+fn read_config() -> HashMap<String, String> {
+	let mut conf = HashMap::new();
+
+	let f = match File::open("/etc/zombieland/conf") {
+		Err(_) => return conf, // TODO logging?
+		Ok(file) => file
+	};
+	let f = BufReader::new(&f);
+
+	// poor man's parser
+	for line in f.lines() {
+		let line = line.unwrap();
+		let mut tokens = line.trim()
+			.splitn(2, |c| c == ' ' || c == '\t');
+		let k = match tokens.next() {
+			Some(s) => s.to_string(),
+			None => continue
+		};
+		let v = match tokens.next() {
+			Some(s) => s.to_string(),
+			None => continue
+		};
+		conf.insert(k, v);
+	}
+
+	conf
 }
 
 fn main() {
@@ -39,9 +72,21 @@ fn main() {
 		// TODO: SIGSEGV?
 	}
 
+	let conf = read_config();
+
 	loop {
-		let _ = Command::new("/sbin/agetty")
-			.arg("tty1")
-			.status(); // XXX should we keep spawning the process no matter what?
+		let mut cmd;
+		let mut cmdarg;
+		match conf.get("main") {
+			Some(s) => {
+				cmd = Command::new(s);
+				cmdarg = &mut cmd;
+			},
+			None => {
+				cmd = Command::new("/sbin/agetty");
+				cmdarg = cmd.arg("tty1");
+			}
+		};
+		let _ = cmdarg.status(); // XXX should we keep spawning the process no matter what?
 	}
 }
