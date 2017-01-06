@@ -81,6 +81,13 @@ fn main() {
 
 	let conf = read_config();
 
+	match conf.get("boot") {
+		Some(s) => {
+			let _ = Command::new(s).status(); // XXX should we do something if anything goes wrong?
+		},
+		None => {}
+	};
+
 	loop {
 		let mut cmd;
 		let mut cmdarg;
