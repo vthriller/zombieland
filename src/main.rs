@@ -2,6 +2,7 @@ extern crate nix;
 
 use std::process::Command;
 use nix::sys::{signal, wait};
+use nix::unistd;
 
 extern fn handle_sigchld(_: i32) {
 	// zombie orphanage… more like a zombie death camp
@@ -16,6 +17,9 @@ extern fn handle_sigchld(_: i32) {
 }
 
 fn main() {
+	// I have no clue why sysvinit (or any other init, for that matter) does that, but at least it makes pid 1 visible in htop (yeah, I know)
+	let _ = unistd::setsid(); // should not get EPERM
+
 	unsafe {
 		for s in signal::Signal::iterator() {
 			// > don't panic, unless your situation is really a life or death one, in which case, sure, go ahead, panic
