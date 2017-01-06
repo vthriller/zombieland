@@ -122,17 +122,15 @@ fn main() {
 
 	loop {
 		let mut cmd;
-		let mut cmdarg;
 		match conf.get("main") {
 			Some(s) => {
 				cmd = Command::new(s);
-				cmdarg = &mut cmd;
 			},
 			None => {
 				cmd = Command::new("/sbin/agetty");
-				cmdarg = cmd.arg("tty1");
+				let _ = cmd.arg("tty1");
 			}
 		};
-		let _ = cmdarg.status(); // XXX should we keep spawning the process no matter what?
+		let _ = cmd.status(); // XXX should we keep spawning the process no matter what?
 	}
 }
