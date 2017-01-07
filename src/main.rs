@@ -11,6 +11,9 @@ use std::os::unix::process::CommandExt;
 use nix::sys::{signal, wait};
 use nix::unistd;
 
+use std::{thread, time};
+use std::panic;
+
 use std::fs::File;
 use std::io::BufReader;
 use std::io::BufRead;
@@ -123,7 +126,10 @@ fn main() {
 		None => {}
 	};
 
+	let sec = time::Duration::from_secs(1);
 	loop {
+		let now = time::Instant::now();
+
 		let mut cmd;
 		match conf.get("main") {
 			Some(s) => {
@@ -135,6 +141,13 @@ fn main() {
 			}
 		};
 		let _ = cmd.before_exec(|| { let _ = unistd::setsid(); Ok(()) });
-		let _ = cmd.status(); // XXX should we keep spawning the process no matter what?
+		let _ = cmd.status();
+
+		// limit respawning rate: not more than once a second
+		// if 'overflow when subtracting durations' occurs, silently (well, not quite silently—FIXME) continue: there's nothing to limit
+		// if any other exception occurs, ignore it as well; heck, we're the pid number one!
+		let _ = panic::catch_unwind(|| {
+			thread::sleep(sec - now.elapsed());
+		});
 	}
 }
