@@ -1,10 +1,13 @@
 // > error: non-ident macro paths are experimental (see issue #35896)
 #![feature(use_extern_macros)]
+// #31398
+#![feature(process_exec)]
 
 extern crate nix;
 extern crate syscall;
 
 use std::process::Command;
+use std::os::unix::process::CommandExt;
 use nix::sys::{signal, wait};
 use nix::unistd;
 
@@ -131,6 +134,7 @@ fn main() {
 				let _ = cmd.arg("tty1");
 			}
 		};
+		let _ = cmd.before_exec(|| { let _ = unistd::setsid(); Ok(()) });
 		let _ = cmd.status(); // XXX should we keep spawning the process no matter what?
 	}
 }
