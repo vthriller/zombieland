@@ -2,6 +2,7 @@
 name = "zombieland"
 version = "0.2.0"
 dependencies = [
+ "libc 0.2.19 (git+https://github.com/rust-lang/libc)",
  "nix 0.8.0 (git+https://github.com/nix-rust/nix)",
  "syscall 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -19,7 +20,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "libc"
 version = "0.2.19"
-source = "git+https://github.com/rust-lang/libc#3ae8c850aa800c6c9440b65c6ea7cfc92731466d"
+source = "git+https://github.com/rust-lang/libc#4fe2cc22e716c7c91d341e6e538de6c09d4838e1"
 
 [[package]]
 name = "nix"

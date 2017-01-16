@@ -19,14 +19,25 @@ use std::io::BufReader;
 use std::io::BufRead;
 use std::collections::HashMap;
 
+mod waitid;
+
+#[allow(non_upper_case_globals)]
+static mut keep_pid: i32 = -1;
+
 extern fn handle_sigchld(_: i32) {
 	// zombie orphanage… more like a zombie death camp
 	loop {
-		// XXX `Option<WaitPidFlag>` for options? Man that is weird, especially considering the fact that `WaitPidFlag` is defined using `bitflags!()`—just like `signal::SigFlags` et al!
-		match wait::waitpid(-1, Some(wait::WNOHANG)) {
-			Ok(wait::WaitStatus::StillAlive) => break,
-			Err(_) => break, // XXX maybe logging?
-			_ => ()
+		match waitid::waitid() {
+			Err(_) => break, // TODO ECHILD vs EINTR vs EINVAL
+			Ok(None) => break, // no more processes found
+			Ok(Some(pid)) => if pid == unsafe { keep_pid } {
+				() // do not interfere with std::process
+			} else {
+				// finish him!
+				// XXX `Option<WaitPidFlag>` for options? Man that is weird, especially considering the fact that `WaitPidFlag` is defined using `bitflags!()`—just like `signal::SigFlags` et al!
+				let _ = wait::waitpid(pid, None); // XXX Err()? maybe logging
+				()
+			}
 		}
 	}
 }
