@@ -52,7 +52,7 @@ extern fn handle_sigint(_: i32) {
 			// * this is ctrl-alt-del handler, so we're probably going to die soon anyways;
 			// * this is signal handler, so we'd rather return as soon as possible;
 			// * as for zombie children situation, we already have `handle_sigchld`.
-			let _ = Command::new(s).spawn(); // we clearly couldn't care less about the outcome of this one
+			let _ = Command::new(s).spawn(); // we clearly couldn't care less about the outcome of this one, thus we don't even plan to `wait()` for it
 		},
 		None => {}
 	};
@@ -132,7 +132,15 @@ fn main() {
 
 	match conf.get("boot") {
 		Some(s) => {
-			let _ = Command::new(s).status(); // XXX should we do something if anything goes wrong?
+			match Command::new(s).spawn() {
+				Ok(mut child) => unsafe { // updating keep_pid is atomic, and we only do that from the main thread, not even the signal handler
+					keep_pid = child.id() as i32; // XXX: > In the GNU C Library, [pid_t] is an int
+					// XXX should we do something if anything goes wrong?
+					let _ = child.wait();
+					keep_pid = -1;
+				},
+				Err(_) => () // TODO logging?
+			};
 		},
 		None => {}
 	};
@@ -152,7 +160,14 @@ fn main() {
 			}
 		};
 		let _ = cmd.before_exec(|| { let _ = unistd::setsid(); Ok(()) });
-		let _ = cmd.status();
+		match cmd.spawn() {
+			Ok(mut child) => unsafe { // see above
+				keep_pid = child.id() as i32; // XXX: > In the GNU C Library, [pid_t] is an int
+				let _ = child.wait();
+				keep_pid = -1;
+			},
+			Err(_) => () // TODO logging?
+		};
 
 		// limit respawning rate: not more than once a second
 		// if 'overflow when subtracting durations' occurs, silently (well, not quite silently—FIXME) continue: there's nothing to limit
