@@ -31,7 +31,10 @@ extern fn handle_sigchld(_: i32) {
 			Err(_) => break, // TODO ECHILD vs EINTR vs EINVAL
 			Ok(None) => break, // no more processes found
 			Ok(Some(pid)) => if pid == unsafe { keep_pid } {
-				() // do not interfere with std::process
+				// do not interfere with std::process
+				// let the main thread clean this process now
+				// XXX: zombie-prone?
+				break
 			} else {
 				// finish him!
 				// XXX `Option<WaitPidFlag>` for options? Man that is weird, especially considering the fact that `WaitPidFlag` is defined using `bitflags!()`—just like `signal::SigFlags` et al!
