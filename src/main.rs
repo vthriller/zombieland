@@ -96,6 +96,18 @@ fn read_config() -> HashMap<String, String> {
 	conf
 }
 
+// keep `keep_pid` up to date
+fn spawn(mut cmd: Command) {
+	match cmd.spawn() {
+		Ok(mut child) => unsafe { // updating keep_pid is atomic, and we only do that from the main thread, not even the signal handler
+			keep_pid = child.id() as i32; // XXX: > In the GNU C Library, [pid_t] is an int
+			let _ = child.wait(); // TODO return?
+			keep_pid = -1;
+		},
+		Err(_) => () // TODO return?
+	};
+}
+
 fn main() {
 	// I have no clue why sysvinit (or any other init, for that matter) does that, but at least it makes pid 1 visible in htop (yeah, I know)
 	let _ = unistd::setsid(); // should not get EPERM
@@ -134,17 +146,7 @@ fn main() {
 	let conf = read_config();
 
 	match conf.get("boot") {
-		Some(s) => {
-			match Command::new(s).spawn() {
-				Ok(mut child) => unsafe { // updating keep_pid is atomic, and we only do that from the main thread, not even the signal handler
-					keep_pid = child.id() as i32; // XXX: > In the GNU C Library, [pid_t] is an int
-					// XXX should we do something if anything goes wrong?
-					let _ = child.wait();
-					keep_pid = -1;
-				},
-				Err(_) => () // TODO logging?
-			};
-		},
+		Some(s) => spawn(Command::new(s)),
 		None => {}
 	};
 
@@ -163,14 +165,7 @@ fn main() {
 			}
 		};
 		let _ = cmd.before_exec(|| { let _ = unistd::setsid(); Ok(()) });
-		match cmd.spawn() {
-			Ok(mut child) => unsafe { // see above
-				keep_pid = child.id() as i32; // XXX: > In the GNU C Library, [pid_t] is an int
-				let _ = child.wait();
-				keep_pid = -1;
-			},
-			Err(_) => () // TODO logging?
-		};
+		spawn(cmd); // XXX should we do something if anything goes wrong?
 
 		// limit respawning rate: not more than once a second
 		// if 'overflow when subtracting durations' occurs, silently (well, not quite silently—FIXME) continue: there's nothing to limit
