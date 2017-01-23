@@ -1,6 +1,6 @@
 [root]
 name = "zombieland"
-version = "0.2.0"
+version = "0.3.1"
 dependencies = [
  "libc 0.2.19 (git+https://github.com/rust-lang/libc)",
  "nix 0.8.0 (git+https://github.com/nix-rust/nix)",
