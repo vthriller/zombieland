@@ -22,19 +22,24 @@ typedef struct {
 	}
 } siginfo_t;
 */
-// On x86_64 linux, this would be "i32 i32 i32 i32 i32 i32 i64 i64 ...", both unpadded and also padded
-// _sigchld alone, if padded, is "i32 i32 i32 (i32) i64 i64 ..." which is not what we want
+// On x86_64 linux, this would be "i32 i32 i32 (i32 padding) | i32 i32 i32 (i32 padding) i64 i64 ..."; union is padded because _sigpoll starts with `long int`
+// _sigchld alone, when padded, is also "i32 i32 i32 (i32 padding) i64 i64 ..."
+// but for some reason if no `#[repr(packed)]` is used and `_pad1` is omitted, depending on the size of the `_pad2`, it's either 896 or 960 bits and not 928 which is the size of `siginfo_t._pad`
 // FIXME? x32 abi: typedef __clock_t __attribute__ ((__aligned__ (4))) __sigchld_clock_t;
 #[cfg(target_os = "linux")]
 #[repr(C)]
 #[repr(packed)]
 struct siginfo_pad_sigchld {
+	// `siginfo_t` does not have any union alignment since it's defined as a simple bunch of `c_int`s and knows nothing about _sigpoll's `long`
+	// so we account for it here
+	_siginfo_dummy_pad: libc::c_int,
 	si_pid: libc::pid_t,
 	si_uid: libc::uid_t,
-	si_status: i32,
+	si_status: libc::c_int,
+	_pad1: libc::c_int,
 	si_utime: libc::clock_t,
 	si_stime: libc::clock_t,
-	_pad: [i32; 22]
+	_pad2: [libc::c_int; 20]
 }
 
 // TODO arguments?
